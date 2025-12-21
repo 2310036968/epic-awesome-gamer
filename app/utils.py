@@ -24,7 +24,12 @@ def patch_aihubmix_bypass():
         # 1. 自动处理 AiHubMix Gemini Native 路径
         orig_init = genai.Client.__init__
         def new_init(self, *args, **kwargs):
-            api_key = settings.GEMINI_API_KEY.get_secret_value()
+            # 获取 API Key (需配合 settings.py 的 SecretStr 类型)
+            if hasattr(settings.GEMINI_API_KEY, 'get_secret_value'):
+                api_key = settings.GEMINI_API_KEY.get_secret_value()
+            else:
+                api_key = str(settings.GEMINI_API_KEY)
+            
             kwargs['api_key'] = api_key
             
             # 清理并对齐 AiHubMix 的 Gemini 原生接口路径
@@ -57,6 +62,7 @@ def patch_aihubmix_bypass():
             
             file_id = f"bypass_{id(content)}"
             file_cache[file_id] = content
+            # 返回伪造的文件对象，骗过上层逻辑
             return types.File(name=file_id, uri=file_id, mime_type="image/png")
 
         orig_generate = genai.models.AsyncModels.generate_content
@@ -67,10 +73,9 @@ def patch_aihubmix_bypass():
             
             for content in normalized:
                 for i, part in enumerate(content.parts):
-                    # 如果检测到被拦截的文件 ID，则转换格式
+                    # 如果检测到被拦截的文件 ID，则转换格式为 Base64
                     if part.file_data and part.file_data.file_uri in file_cache:
                         data = file_cache[part.file_data.file_uri]
-                        # 强行转换为 Inline Data (Base64)
                         content.parts[i] = types.Part.from_bytes(data=data, mime_type="image/png")
             
             return await orig_generate(self_models, model, normalized, **kwargs)
@@ -91,150 +96,5 @@ def init_log(**sink_channel):
     logger.add(sink=sys.stdout, level=log_level, filter=timezone_filter)
     return logger
 
-# 修正部分：确保调用语句干净，没有尾随字符
-if __name__ == "utils" or __name__ == "__main__":
-    init_log()            """拦截识别，将文件引用替换为 Base64"""
-            from google.genai._common import _contents_to_list
-            normalized = _contents_to_list(contents)
-            
-            for content in normalized:
-                for i, part in enumerate(content.parts):
-                    # 如果检测到被拦截的文件 ID，则转换格式
-                    if part.file_data and part.file_data.file_uri in file_cache:
-                        data = file_cache[part.file_data.file_uri]
-                        # 强行转换为 Inline Data (Base64)
-                        content.parts[i] = types.Part.from_bytes(data=data, mime_type="image/png")
-            
-            return await orig_generate(self_models, model, normalized, **kwargs)
-
-        # 挂载补丁
-        genai.files.AsyncFiles.upload = patched_upload
-        genai.models.AsyncModels.generate_content = patched_generate
-        
-    except Exception as e:
-        logger.error(f"终极补丁加载失败: {e}")
-
-def init_log(**sink_channel):
-    # 强制注入中转补丁
-    patch_aihubmix_bypass()
-    
-    log_level = os.getenv("LOG_LEVEL", "DEBUG").upper()
-    logger.remove()
-    logger.add(sink=sys.stdout, level=log_level, filter=timezone_filter)
-    return logger
-
-# 独立执行初始化，确保末尾无多余字符
-init_log()            """拦截识别，将文件引用替换为 Base64"""
-            from google.genai._common import _contents_to_list
-            normalized = _contents_to_list(contents)
-            
-            for content in normalized:
-                for i, part in enumerate(content.parts):
-                    # 如果检测到被拦截的文件 ID，则转换格式
-                    if part.file_data and part.file_data.file_uri in file_cache:
-                        data = file_cache[part.file_data.file_uri]
-                        # 强行转换为 Inline Data (Base64)
-                        content.parts[i] = types.Part.from_bytes(data=data, mime_type="image/png")
-            
-            return await orig_generate(self_models, model, normalized, **kwargs)
-
-        # 挂载补丁
-        genai.files.AsyncFiles.upload = patched_upload
-        genai.models.AsyncModels.generate_content = patched_generate
-        
-    except Exception as e:
-        logger.error(f"终极补丁加载失败: {e}")
-
-def init_log(**sink_channel):
-    # 强制注入中转补丁
-    patch_aihubmix_bypass()
-    
-    log_level = os.getenv("LOG_LEVEL", "DEBUG").upper()
-    logger.remove()
-    logger.add(sink=sys.stdout, level=log_level, filter=timezone_filter)
-    return logger
-
-# 独立执行初始化，确保末尾无杂乱字符
-if __name__ == "utils" or __name__ == "__main__":
-    init_log()            """拦截识别，将文件引用替换为 Base64"""
-            from google.genai._common import _contents_to_list
-            normalized = _contents_to_list(contents)
-            
-            for content in normalized:
-                for i, part in enumerate(content.parts):
-                    # 如果检测到被拦截的文件 ID，则转换格式
-                    if part.file_data and part.file_data.file_uri in file_cache:
-                        data = file_cache[part.file_data.file_uri]
-                        # 强行转换为 Inline Data (Base64)
-                        content.parts[i] = types.Part.from_bytes(data=data, mime_type="image/png")
-            
-            return await orig_generate(self_models, model, normalized, **kwargs)
-
-        # 挂载补丁
-        genai.files.AsyncFiles.upload = patched_upload
-        genai.models.AsyncModels.generate_content = patched_generate
-        
-    except Exception as e:
-        logger.error(f"终极补丁加载失败: {e}")
-
-def init_log(**sink_channel):
-    # 强制注入中转补丁
-    patch_aihubmix_bypass()
-    
-    log_level = os.getenv("LOG_LEVEL", "DEBUG").upper()
-    logger.remove()
-    logger.add(sink=sys.stdout, level=log_level, filter=timezone_filter)
-    return logger
-
-# 执行初始化
-init_log()            """拦截识别，将文件引用替换为 Base64"""
-            from google.genai._common import _contents_to_list
-            normalized = _contents_to_list(contents)
-            
-            for content in normalized:
-                for i, part in enumerate(content.parts):
-                    # 如果检测到被拦截的文件 ID，则转换格式
-                    if part.file_data and part.file_data.file_uri in file_cache:
-                        data = file_cache[part.file_data.file_uri]
-                        # 强行转换为 Inline Data (Base64)
-                        content.parts[i] = types.Part.from_bytes(data=data, mime_type="image/png")
-            
-            return await orig_generate(self_models, model, normalized, **kwargs)
-
-        # 挂载补丁
-        genai.files.AsyncFiles.upload = patched_upload
-        genai.models.AsyncModels.generate_content = patched_generate
-        
-    except Exception as e:
-        logger.error(f"终极补丁加载失败: {e}")
-
-def init_log(**sink_channel):
-    # 强制注入中转补丁
-    patch_aihubmix_bypass()
-    
-    log_level = os.getenv("LOG_LEVEL", "DEBUG").upper()
-    logger.remove()
-    logger.add(sink=sys.stdout, level=log_level, filter=timezone_filter)
-    return logger
-
-# 执行初始化
-init_log()                        # 强行转换为 Inline Data (Base64)
-                        content.parts[i] = types.Part.from_bytes(data=data, mime_type="image/png")
-            
-            return await orig_generate(self_models, model, normalized, **kwargs)
-
-        # 挂载补丁
-        genai.files.AsyncFiles.upload = patched_upload
-        genai.models.AsyncModels.generate_content = patched_generate
-        
-    except Exception as e:
-        logger.error(f"终极补丁加载失败: {e}")
-
-def init_log(**sink_channel):
-    patch_aihubmix_bypass()
-    log_level = os.getenv("LOG_LEVEL", "DEBUG").upper()
-    logger.remove()
-    logger.add(sink=sys.stdout, level=log_level, filter=timezone_filter)
-    return logger
-
+# 确保最后一行干净，没有多余字符
 init_log()
