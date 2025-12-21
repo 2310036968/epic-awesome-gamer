@@ -76,27 +76,59 @@
 
 > ✅ **成功提示**：之后的每周，脚本都会根据 `.github/workflows` 中的定时配置自动运行。
 
+根据您刚才修改后的 `docker-compose.yaml`（合并了环境变量、增加了数据持久化映射），我们需要更新 README 中关于 Docker 部署的章节。
+
+现在的部署流程变得更加简单：**不需要创建 `.env` 文件，直接编辑 `docker-compose.yaml` 即可。**
+
+请使用以下内容替换 README.md 中原有的 **“🐳 本地/Docker 部署”** 章节：
+
 ---
 
+```markdown
 ## 🐳 本地/Docker 部署
 
-如果您拥有自己的服务器（VPS/NAS），也可以使用 Docker Compose 一键部署。
+如果您拥有自己的服务器（VPS/NAS），可以使用 Docker Compose 一键部署。此版本已配置数据持久化，重启容器无需重新登录。
 
+### 1. 获取代码
 ```bash
-# 1. 克隆代码
-git clone https://github.com/10000ge10000/epic-awesome-gamer.git
+git clone [https://github.com/your-username/epic-awesome-gamer.git](https://github.com/your-username/epic-awesome-gamer.git)
 cd epic-awesome-gamer/docker
 
-# 2. 配置环境变量
-cp .env.example .env
-# 编辑 .env 文件，填入上述 Secrets 中的账号信息
+```
 
-# 3. 启动容器
+### 2. 配置账号
+
+直接编辑 `docker-compose.yaml` 文件，修改 `environment` 下的变量：
+
+```yaml
+version: '3'
+services:
+  epic-awesome-gamer:
+    image: ghcr.io/your-username/epic-awesome-gamer:latest
+    environment:
+      - EPIC_EMAIL=your_email@example.com      # <--- 修改这里
+      - EPIC_PASSWORD=your_password            # <--- 修改这里
+      - GEMINI_API_KEY=sk-xxxxxxxxxxxx         # <--- 修改这里
+      # 可选：修改中转地址
+      - GEMINI_BASE_URL=[https://aihubmix.com/v1](https://aihubmix.com/v1) 
+    # ...
+
+```
+
+### 3. 启动容器
+
+```bash
 docker compose up -d
 
 ```
 
----
+> 💾 **关于数据持久化**：
+> 容器启动后，您的登录凭证（Cookies）、截图和日志会自动保存在当前目录下的 `./volumes` 文件夹中。
+> 即使删除或重启容器，只要 `./volumes` 文件夹还在，就不需要重新登录。
+
+```
+
+```
 
 ## 🛠️ 常见问题 (FAQ)
 
