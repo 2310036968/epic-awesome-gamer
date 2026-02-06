@@ -260,7 +260,7 @@ class EpicGames:
         has_pending_cart_items = False
 
         for url in urls:
-            await page.goto(url, wait_until="load")
+            await page.goto(url, wait_until="domcontentloaded")
 
             # 404 检测
             title = await page.title()
